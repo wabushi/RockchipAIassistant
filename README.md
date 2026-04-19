@@ -1,5 +1,5 @@
 This is a repo for an AI assistant running on ROCK-5A device.
-Due to the size of the AI model files - the are added to the .gitignore file - but the are available publicly.
+Due to the size of the AI model files - the are added to the .gitignore file - but they are available publicly.
 
 Directory tree:
 ```text
