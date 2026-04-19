@@ -56,3 +56,12 @@ pip install piper-tts
 ```
 **Get onnx voice model from piper here (.onnx & .json files required):**
 https://huggingface.co/rhasspy/piper-voices/tree/main
+
+**To run the AI ASSISTANT:**
+1. start the virtual environment:
+   ```bash
+   source venv/bin/activate
+   ```
+2. ```bash
+   python3 tts/llm_tts_simple.py
+   ```
