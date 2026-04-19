@@ -1,0 +1,5 @@
+Model notes:
+tinyLlama is stupid. dont use it.
+qwen2.5-3b is a little heavy. perhaps will work well in headless mode.
+qwen2.5-1.5b is fast enough. will use it for now:
+./build/bin/llama-cli -m ~/slm/models/qwen2.5-1.5b-instruct-q4-k-m.gguf -t 6 -c 20048 --keep 20048 -n 215 --repeat-penalty 1.15

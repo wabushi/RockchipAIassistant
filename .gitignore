@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+tts/venv/
+
+# Models / voices
+models/
+tts/voices/
+*.gguf
+*.onnx
+
+# Outputs / generated audio
+tts/output/
+*.wav
+*.mp3
+
+# Build artifacts
+build/
+dist/
+llama.cpp/build/
+
+# Logs / cache
+*.log
+.cache/
+llama.cpp/
