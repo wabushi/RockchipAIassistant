@@ -26,3 +26,4 @@ llama.cpp/build/
 *.log
 .cache/
 llama.cpp/
+llama.cpp/

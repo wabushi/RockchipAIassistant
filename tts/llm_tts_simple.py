@@ -2,6 +2,7 @@
 import os
 import re
 import sys
+import wave
 import subprocess
 from pathlib import Path
 
@@ -21,6 +22,10 @@ OUTPUT_WAV = OUTPUT_DIR / "llm_tts_output.wav"
 LOG_FILE = OUTPUT_DIR / "run.log"
 RAW_FILE = OUTPUT_DIR / "llm_last_raw.txt"
 CLEAN_FILE = OUTPUT_DIR / "llm_last_clean.txt"
+
+# Add a short silence to the start of every WAV so playback hardware
+# does not clip the first spoken syllables.
+LEADING_SILENCE_MS = 350
 
 
 def log(msg: str) -> None:
@@ -123,12 +128,33 @@ def sanitize_for_tts(text: str) -> str:
     text = re.sub(r"/\w+", " ", text)
 
     # Remove weird punctuation-only chunks
-    text = re.sub(r"[^\w\s.,!?'-]", " ", text)
+    text = re.sub(r"[^\w\s.,!?'\-]", " ", text)
 
     # Collapse spaces
     text = re.sub(r"\s+", " ", text).strip()
 
     return text
+
+
+def prepend_silence_to_wav(wav_path: Path, silence_ms: int = LEADING_SILENCE_MS) -> None:
+    """
+    Reads the existing WAV, prepends digital silence, and writes it back.
+    This is usually the most reliable fix for clipped first words on ALSA devices.
+    """
+    with wave.open(str(wav_path), "rb") as wf:
+        params = wf.getparams()
+        audio_data = wf.readframes(wf.getnframes())
+
+    framerate = params.framerate
+    nchannels = params.nchannels
+    sampwidth = params.sampwidth
+
+    silence_frames = int(framerate * silence_ms / 1000)
+    silence_bytes = b"\x00" * silence_frames * nchannels * sampwidth
+
+    with wave.open(str(wav_path), "wb") as wf:
+        wf.setparams(params)
+        wf.writeframes(silence_bytes + audio_data)
 
 
 def synthesize_and_play(text: str) -> None:
@@ -163,7 +189,21 @@ def synthesize_and_play(text: str) -> None:
 
     check_file(str(OUTPUT_WAV), "Generated WAV")
 
-    subprocess.run([APLAY_BIN, str(OUTPUT_WAV)])
+    prepend_silence_to_wav(OUTPUT_WAV, LEADING_SILENCE_MS)
+    log(f"[INFO] Prepended {LEADING_SILENCE_MS} ms of silence to WAV")
+
+    play_res = subprocess.run(
+        [APLAY_BIN, str(OUTPUT_WAV)],
+        capture_output=True,
+        text=True,
+    )
+
+    if play_res.returncode != 0:
+        if play_res.stderr:
+            log("[APLAY STDERR]")
+            log(play_res.stderr)
+        raise RuntimeError("Audio playback failed")
+
 
 class LlamaSession:
     def __init__(self):
@@ -182,9 +222,9 @@ class LlamaSession:
             f'{LLAMA_BIN} '
             f'-m "{MODEL_PATH}" '
             f'-t 6 '
-            f'-c 20048 '
-            f'--keep 20048 '
-            f'-n 215 '
+            f'-c 8192 '
+            f'--keep 512 '
+            f'-n -1 '
             f'--repeat-penalty 1.15'
         )
 
@@ -197,7 +237,6 @@ class LlamaSession:
             timeout=120,
         )
 
-        # Wait for the interactive prompt
         self.child.expect(r"\n> ")
         log("[INFO] llama.cpp is ready")
 
@@ -213,7 +252,6 @@ class LlamaSession:
 
         self.child.sendline(prompt)
 
-        # Capture everything until the next prompt
         self.child.expect(r"\n> ")
         raw = self.child.before or ""
 
