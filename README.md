@@ -60,6 +60,7 @@ https://huggingface.co/rhasspy/piper-voices/tree/main
 **To run the AI ASSISTANT:**
 1. start the virtual environment:
    ```bash
+   cd tts
    source venv/bin/activate
    ```
 2. ```bash
