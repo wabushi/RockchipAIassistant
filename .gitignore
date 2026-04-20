@@ -14,8 +14,6 @@ tts/voices/
 
 # Outputs / generated audio
 tts/output/
-*.wav
-*.mp3
 
 # Build artifacts
 build/
