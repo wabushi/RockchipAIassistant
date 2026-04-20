@@ -1,0 +1,6 @@
+Static:
+keep your responses short, use a single sentence.
+
+Dynamic:
+The name of the User: -\ /-\ /- The name of the User: Erez
+-\ /-\ /-\ Based on this conversation, the user appears to be named Erez and enjoys Pokémon, focusing on embedded devices development with expertise in Python scripting, 3D modeling, CAD design, and has an interest in AI models.
